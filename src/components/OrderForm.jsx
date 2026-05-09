@@ -87,7 +87,7 @@ export default function OrderForm() {
     return e;
   };
 
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     const e = validate();
     if (Object.keys(e).length) {
       setErrors(e);
@@ -96,6 +96,13 @@ export default function OrderForm() {
     setErrors({});
     setLoading(true);
     setError("");
+
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      setError("Fitur pemesanan hanya tersedia di localhost. Silakan buka aplikasi di komputer lokal untuk demo penuh.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/create-order.php", {
         method: "POST",

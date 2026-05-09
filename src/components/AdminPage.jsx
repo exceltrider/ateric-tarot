@@ -20,10 +20,16 @@ export default function AdminPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const fetchOrders = useCallback(async () => {
+    const fetchOrders = useCallback(async () => {
     setLoading(true);
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      setError("Admin panel hanya tersedia di localhost.");
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await fetch('/api/orders.php');
+      const res = await fetch("/api/orders.php");
       const data = await res.json();
       setOrders(data);
     } catch {
