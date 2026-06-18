@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
+import API_BASE_URL from '../api';
 
 const STATUS_LABELS = { pending: 'Pending', confirmed: 'Confirmed', done: 'Done' };
 
@@ -19,31 +21,44 @@ export default function AdminPage() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const { token, logout } = useAuth();
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/orders.php');
+      const res = await fetch(`${API_BASE_URL}/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error('Server error');
       const data = await res.json();
       setOrders(data);
     } catch {
-      setError('Gagal mengambil data. Pastikan server aktif. (Fitur ini hanya berfungsi di localhost)');
+      setError('Gagal mengambil data. Pastikan server aktif.');
       setOrders([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  useEffect(() => {
+    if (token) {
+      fetchOrders();
+    } else {
+      setLoading(false);
+      setError('Silakan login terlebih dahulu.');
+    }
+  }, [fetchOrders, token]);
 
   const handleStatus = async (id, status) => {
     try {
-      await fetch('/api/update-status.php', {
+      await fetch(`${API_BASE_URL}/orders/${id}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status }),
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
       });
       setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     } catch {
@@ -53,10 +68,9 @@ export default function AdminPage() {
 
   const handleDelete = async (id) => {
     try {
-      await fetch('/api/delete-order.php', {
+      await fetch(`${API_BASE_URL}/orders/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        headers: { Authorization: `Bearer ${token}` },
       });
       setOrders((prev) => prev.filter((o) => o.id !== id));
     } catch {
@@ -96,6 +110,11 @@ export default function AdminPage() {
             <button onClick={fetchOrders} className="text-xs tracking-widest text-cream-dim border border-crimson/30 px-3 py-1.5 rounded-sm hover:border-gold/50 hover:text-gold transition">
               ↻ Refresh
             </button>
+            {token && (
+              <button onClick={logout} className="text-xs tracking-widest text-cream-dim border border-crimson/30 px-3 py-1.5 rounded-sm hover:border-gold/50 hover:text-gold transition">
+                Logout
+              </button>
+            )}
             <a href="/" className="text-xs tracking-widest text-cream-dim hover:text-gold transition">← Halaman Utama</a>
           </div>
         </div>
@@ -155,7 +174,12 @@ export default function AdminPage() {
         )}
 
         {/* TABLE */}
-        {loading ? (
+        {!token ? (
+          <div className="text-center py-16 text-cream-dim">
+            <span className="block text-3xl text-gold mb-4">🔒</span>
+            <p>Silakan <a href="/login" className="underline text-gold hover:text-cream">login</a> terlebih dahulu.</p>
+          </div>
+        ) : loading ? (
           <div className="text-center py-16 text-cream-dim">
             <span className="block text-3xl text-gold mb-4 animate-pulse">☽</span>
             <p>Memuat data pesanan…</p>

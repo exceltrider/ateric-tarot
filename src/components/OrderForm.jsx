@@ -1,4 +1,5 @@
 import { useState } from "react";
+import API_BASE_URL from "../api";
 
 const SERVICES = [
   { id: 1, name: "Yes or No Reading", price: 15000, desc: "Satu kartu untuk jawaban Ya/Tidak/Belum Jelas. Tidak interaktif.", symbol: "✦" },
@@ -98,7 +99,8 @@ export default function OrderForm() {
     setError("");
 
     try {
-      const res = await fetch("/api/create-order.php", {
+      // Endpoint publik untuk customer (tanpa login)
+      const res = await fetch(`${API_BASE_URL}/orders/public`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -106,19 +108,19 @@ export default function OrderForm() {
           email: form.email,
           phone: form.phone,
           instagram: form.instagram,
-          services: selectedServices.map((s) => s.id),
+          items: selectedServices.map((s) => ({ service_id: s.id, quantity: 1 })),
         }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.order_id) {
         setResult({ orderId: data.order_id, total });
         setForm({ name: "", email: "", phone: "", instagram: "" });
         setSelected({});
       } else {
-        setError(data.message || "Terjadi kesalahan. Silakan coba lagi.");
+        setError(data.error || "Terjadi kesalahan. Silakan coba lagi.");
       }
     } catch {
-      setError("Tidak dapat terhubung ke server. Pastikan server aktif. (Fitur ini hanya berfungsi di localhost)");
+      setError("Tidak dapat terhubung ke server. Pastikan server aktif.");
     } finally {
       setLoading(false);
     }
