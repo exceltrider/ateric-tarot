@@ -156,7 +156,7 @@ export default function OrderForm() {
         <p className="text-xs tracking-[0.2em] uppercase text-gold">Tarot for reflection, not only prediction.</p>
         <h2 className="font-serif italic text-5xl md:text-6xl font-light leading-tight text-cream">Biarkan kartu<br />bicara untukmu.</h2>
         <p className="text-xs leading-relaxed text-cream-dim max-w-md">
-          Gentle guidance through symbols — pengerjaan maks 12 jam.<br />
+          Gentle guidance through symbols — pengerjaan maks 10 jam.<br />
           Privasi sepenuhnya terjaga. Pembayaran dilakukan sebelum sesi dimulai.
         </p>
       </section>
